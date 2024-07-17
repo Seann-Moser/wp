@@ -26,6 +26,7 @@ type Generator interface {
 	Chat(ctx context.Context, msg string) ([]Chat, error)
 	FunctionCalls(ctx context.Context, msg string, chatList ...Chat) ([]Chat, error)
 	AddFunctions(efList ...*ExternalFunctions)
+	Ping(ctx context.Context) error
 }
 
 type Chat struct {

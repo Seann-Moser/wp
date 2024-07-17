@@ -43,15 +43,15 @@ var prompt = `
 ## Question
 Can you provide me a list to all images in the website?
 `
-var _ Generator = &OlmaClient{}
+var _ Generator = &OllamaClient{}
 
-type OlmaClient struct {
-	client              *http.Client
-	hostURL             string
-	sourceCode          source_code.SourceGetter
-	model               string
-	externalFuctions    []*ExternalFunctions
-	externalFuctionsMap map[string]*ExternalFunctions
+type OllamaClient struct {
+	client               *http.Client
+	hostURL              string
+	sourceCode           source_code.SourceGetter
+	model                string
+	externalFunctions    []*ExternalFunctions
+	externalFunctionsMap map[string]*ExternalFunctions
 }
 
 type Request struct {
@@ -73,28 +73,32 @@ func OllamaFlags() *pflag.FlagSet {
 	return fs
 }
 
-func NewOllamaFlags(client *http.Client, sourceCode source_code.SourceGetter) *OlmaClient {
-	return &OlmaClient{
-		client:              client,
-		hostURL:             viper.GetString("ollama-host-url"),
-		sourceCode:          sourceCode,
-		model:               "llama2-uncensored",
-		externalFuctionsMap: make(map[string]*ExternalFunctions),
+func NewOllamaFlags(client *http.Client, sourceCode source_code.SourceGetter) *OllamaClient {
+	return &OllamaClient{
+		client:               client,
+		hostURL:              viper.GetString("ollama-host-url"),
+		sourceCode:           sourceCode,
+		model:                "llama2-uncensored",
+		externalFunctionsMap: make(map[string]*ExternalFunctions),
 	}
 }
 
-func NewOlMA(client *http.Client, hostURL, model string, sourceCode source_code.SourceGetter) *OlmaClient {
-	return &OlmaClient{
-		client:              client,
-		hostURL:             hostURL,
-		sourceCode:          sourceCode,
-		model:               model,
-		externalFuctions:    nil,
-		externalFuctionsMap: make(map[string]*ExternalFunctions),
+func NewOllama(client *http.Client, hostURL, model string, sourceCode source_code.SourceGetter) *OllamaClient {
+	return &OllamaClient{
+		client:               client,
+		hostURL:              hostURL,
+		sourceCode:           sourceCode,
+		model:                model,
+		externalFunctions:    nil,
+		externalFunctionsMap: make(map[string]*ExternalFunctions),
 	}
 }
 
-func (o *OlmaClient) GenerateParser(ctx context.Context, url string) error {
+func (o *OllamaClient) Ping(ctx context.Context) error {
+	return nil
+}
+
+func (o *OllamaClient) GenerateParser(ctx context.Context, url string) error {
 	data, _, err := o.sourceCode.Get(ctx, url)
 	if err != nil {
 		return err
@@ -133,11 +137,12 @@ func (o *OlmaClient) GenerateParser(ctx context.Context, url string) error {
 	return nil
 }
 
-func (o *OlmaClient) Chat(ctx context.Context, msg string) ([]Chat, error) {
+func (o *OllamaClient) Chat(ctx context.Context, msg string) ([]Chat, error) {
 	//TODO implement me
 	panic("implement me")
 }
-func (o *OlmaClient) pullModel(ctx context.Context, model string) error {
+
+func (o *OllamaClient) pullModel(ctx context.Context, model string) error {
 	u, err := url.Parse(o.hostURL)
 	if err != nil {
 		return err
@@ -152,7 +157,7 @@ func (o *OlmaClient) pullModel(ctx context.Context, model string) error {
 	}
 	return nil
 }
-func (o *OlmaClient) FunctionCalls(ctx context.Context, msg string, chatList ...Chat) ([]Chat, error) {
+func (o *OllamaClient) FunctionCalls(ctx context.Context, msg string, chatList ...Chat) ([]Chat, error) {
 	if msg == "" {
 		return nil, fmt.Errorf("empty msg")
 	}
@@ -160,7 +165,7 @@ func (o *OlmaClient) FunctionCalls(ctx context.Context, msg string, chatList ...
 		Role:    RoleUser,
 		Message: msg,
 	})
-	p, err := getContext(o.externalFuctions, chatList...)
+	p, err := getContext(o.externalFunctions, chatList...)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +222,7 @@ func (o *OlmaClient) FunctionCalls(ctx context.Context, msg string, chatList ...
 	}
 	chat.Role = RoleAssistant
 	chatList = append(chatList, *chat)
-	if f, ok := o.externalFuctionsMap[chat.Tool.ExternalFunctions.Name]; ok {
+	if f, ok := o.externalFunctionsMap[chat.Tool.ExternalFunctions.Name]; ok {
 		output := map[string]interface{}{}
 		for _, v := range chat.Tool.ExternalFunctions.Param {
 			output[v.Name] = v.Value
@@ -240,13 +245,13 @@ func (o *OlmaClient) FunctionCalls(ctx context.Context, msg string, chatList ...
 	return chatList, nil
 }
 
-func (o *OlmaClient) AddFunctions(efList ...*ExternalFunctions) {
+func (o *OllamaClient) AddFunctions(efList ...*ExternalFunctions) {
 	for _, ef := range efList {
-		if _, ok := o.externalFuctionsMap[ef.Name]; ok {
+		if _, ok := o.externalFunctionsMap[ef.Name]; ok {
 			continue
 		}
-		o.externalFuctions = append(o.externalFuctions, ef)
-		o.externalFuctionsMap[ef.Name] = ef
+		o.externalFunctions = append(o.externalFunctions, ef)
+		o.externalFunctionsMap[ef.Name] = ef
 
 	}
 

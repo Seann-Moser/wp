@@ -12,7 +12,7 @@ func TestOllama(t *testing.T) {
 	ctx := context.Background()
 	source := source_code.NewDirect(http.DefaultClient)
 	source.Ping(ctx)
-	l := NewOlMA(http.DefaultClient, "http://localhost:8888", OllamaModelDeepSeekCoderV2, source)
+	l := NewOllama(http.DefaultClient, "http://localhost:8888", OllamaModelDeepSeekCoderV2, source)
 
 	err := l.GenerateParser(ctx, "")
 	if err != nil {
@@ -24,7 +24,7 @@ func TestOllamaFunc(t *testing.T) {
 	ctx := context.Background()
 	source := source_code.NewDirect(http.DefaultClient)
 	source.Ping(ctx)
-	l := NewOlMA(http.DefaultClient, "http://localhost:8888", OllamaModelDeepSeekCoderV2, source)
+	l := NewOllama(http.DefaultClient, "http://localhost:8888", OllamaModelDeepSeekCoderV2, source)
 
 	funList := []*ExternalFunctions{
 		{
@@ -69,21 +69,21 @@ func TestJSONExtract(t *testing.T) {
 		"role": "user",
 		"message": "tell me about this website: https://github.com/Seann-Moser/",
 		"tool": {
-		"external_functions": {
-			"name": "GetURLSourceCode",
+			"external_functions": {
+				"name": "GetURLSourceCode",
 				"description": "returns url source code",
 				"param": [
-{
-"name": "url",
-"type": "string",
-"description": "the url to get source code for",
-"value": "https://github.com/Seann-Moser/",
-"example": "https://example.com/test/"
-}
-]
-},
-"response": null
-}
+					{
+						"name": "url",
+						"type": "string",
+						"description": "the url to get source code for",
+						"value": "https://github.com/Seann-Moser/",
+						"example": "https://example.com/test/"
+					}
+				]
+			},
+			"response": null
+	}
 }
 '''
 `
