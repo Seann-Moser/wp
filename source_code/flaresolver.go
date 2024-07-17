@@ -27,7 +27,7 @@ type FlareParserRequest struct {
 
 func FlareSolverFlags() *pflag.FlagSet {
 	fs := pflag.NewFlagSet("flaresolver", pflag.ExitOnError)
-	fs.String("flaresolver-host-url", "http://localhost:8191/v1", "Host URL")
+	fs.String("flaresolver-host-url", "http://localhost:8191", "Host URL")
 	return fs
 }
 
@@ -38,10 +38,10 @@ func NewFlareSolverFromFlags(client *http.Client) *FlareSolver {
 	}
 }
 
-func NewFlareSolver(client *http.Client) *FlareSolver {
+func NewFlareSolver(client *http.Client, hostURL string) *FlareSolver {
 	return &FlareSolver{
 		client:  client,
-		HostURL: "http://localhost:8191/v1",
+		HostURL: hostURL,
 	}
 }
 
@@ -113,7 +113,7 @@ func (z *FlareSolver) buildRequest(ctx context.Context, endpoint string) (*http.
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, z.HostURL, bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, z.HostURL+"/v1", bytes.NewBuffer(b))
 
 	if err != nil {
 		return nil, err

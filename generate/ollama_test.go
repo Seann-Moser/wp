@@ -1,16 +1,25 @@
-## WP
-### Requirements
-- Ollama
+package generate
 
-```bash
-docker run -d -v ollama:/root/.ollama -p 8888:11434 --name ollama ollama/ollama
-```
+import (
+	"context"
+	"encoding/json"
+	"github.com/Seann-Moser/wp/source_code"
+	"net/http"
+	"testing"
+)
 
+func TestOllama(t *testing.T) {
+	ctx := context.Background()
+	source := source_code.NewDirect(http.DefaultClient)
+	source.Ping(ctx)
+	l := NewOlMA(http.DefaultClient, "http://localhost:8888", OllamaModelDeepSeekCoderV2, source)
 
+	err := l.GenerateParser(ctx, "")
+	if err != nil {
+		return
+	}
+}
 
-
-### Test
-```go
 func TestOllamaFunc(t *testing.T) {
 	ctx := context.Background()
 	source := source_code.NewDirect(http.DefaultClient)
@@ -52,4 +61,35 @@ func TestOllamaFunc(t *testing.T) {
 	}
 	println(string(m))
 }
-```
+
+func TestJSONExtract(t *testing.T) {
+	testData := `
+ '''json
+	{
+		"role": "user",
+		"message": "tell me about this website: https://github.com/Seann-Moser/",
+		"tool": {
+		"external_functions": {
+			"name": "GetURLSourceCode",
+				"description": "returns url source code",
+				"param": [
+{
+"name": "url",
+"type": "string",
+"description": "the url to get source code for",
+"value": "https://github.com/Seann-Moser/",
+"example": "https://example.com/test/"
+}
+]
+},
+"response": null
+}
+}
+'''
+`
+	_, err := GetJSON(testData)
+	if err != nil {
+		t.Error(err)
+	}
+
+}
